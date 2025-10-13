@@ -23,5 +23,7 @@ app.post("/stockfish", async (req, res) => {
   }
 });
 
-const PORT = 3000;
-app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 3000;  // Fly.io sets PORT dynamically
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Chess API proxy running on port ${PORT}`);
+});
