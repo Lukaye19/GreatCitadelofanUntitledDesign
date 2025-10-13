@@ -4,9 +4,9 @@ import fetch from "node-fetch";
 const app = express();
 app.use(express.json());
 
-app.post("/stockfish", async (req, res) => {
-  console.log("Incoming request:", req.body);
+app.get("/", (req, res) => res.send("Stockfish proxy is running!"));
 
+app.post("/stockfish", async (req, res) => {
   try {
     const response = await fetch("https://chess-api.com/v1", {
       method: "POST",
@@ -14,16 +14,20 @@ app.post("/stockfish", async (req, res) => {
       body: JSON.stringify(req.body),
     });
 
-    const data = await response.json();
-    console.log("Chess API response:", data);
-    res.json(data);
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = text; }
+
+    res.status(response.status).json(data);
   } catch (e) {
     console.error("Proxy error:", e);
     res.status(500).json({ error: e.message });
   }
 });
 
-const PORT = process.env.PORT || 3000;  // Fly.io sets PORT dynamically
+const PORT = process.env.PORT;
+if (!PORT) throw new Error("PORT not set by environment (Fly.io sets this)");
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Chess API proxy running on port ${PORT}`);
 });
