@@ -4,6 +4,14 @@ import fetch from "node-fetch";
 const app = express();
 app.use(express.json());
 
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
 app.get("/", (req, res) => res.send("Stockfish proxy is running!"));
 
 app.post("/stockfish", async (req, res) => {
@@ -14,9 +22,12 @@ app.post("/stockfish", async (req, res) => {
       body: JSON.stringify(req.body),
     });
 
-    const text = await response.text();
     let data;
-    try { data = JSON.parse(text); } catch { data = text; }
+    try {
+      data = await response.json();
+    } catch {
+      data = await response.text();
+    }
 
     res.status(response.status).json(data);
   } catch (e) {
